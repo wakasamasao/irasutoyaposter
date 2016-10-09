@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>rfr</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        @media print {
+            body {
+                width: 210mm;
+            }
+        }        
+        #pict img {
+            position: absolute;
+        }
+        body{
+
+        }
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/jquery.js"></script>
+    <script src="js/main.js"></script>
+    <script type="text/javascript" src="js/wordart.js"></script>
+
+    <script>
+        var maxWidth=770;
+        var maxHeight=1090;
+        var socketio = io.connect(location.host);
+        var datas = {
+            "注意":[
+                {"name":"pop_chuui.png","url":"http://www.irasutoya.com/2014/05/blog-post_5.html"},
+                {"name":"mark_chuui.png","url":"http://www.irasutoya.com/2014/05/blog-post_2203.html"}
+            ],
+            "盗難":[
+            ],
+            "避難所":[
+                {"name":"hinanjo_seikatsu_family_smile.png","url":"http://www.irasutoya.com/2015/09/blog-post_351.html"},
+                {"name":"hinanjo_seikatsu_family_sad.png","url":"http://www.irasutoya.com/2015/09/blog-post_355.html"}
+            ]  ,
+            "aaaa":[
+                {"name":"hinanjo_seikatsu_family_smile.png","url":"http://www.irasutoya.com/2015/09/blog-post_351.html"},
+                {"name":"hinanjo_seikatsu_family_sad.png","url":"http://www.irasutoya.com/2015/09/blog-post_355.html"}
+            ]   ,
+            "bb":[
+                {"name":"hinanjo_seikatsu_family_smile.png","url":"http://www.irasutoya.com/2015/09/blog-post_351.html"},
+                {"name":"hinanjo_seikatsu_family_sad.png","url":"http://www.irasutoya.com/2015/09/blog-post_355.html"}
+            ]              
+        };
+        var texts;
+
+        socketio.on("publish", function (data) {
+            console.log(data);
+            datas=data.value;
+            viewImage();
+        });
+
+        $(function(){
+            console.log('OK');
+            $("#pos").click(function(e){
+                 viewImage();
+            });
+        })
+
+        function sendServer(txt){
+            socketio.emit("sendtext", txt);
+        }
+
+        function viewImage(){
+            $("#pict").empty();
+            wordart($('#inputtext').val(), '#title', 100, 150, 80);
+
+            var images=[];
+            var maxcount=0;
+            if(datas){
+                var count=0;
+                var bgfile="image/bg"+Math.floor(Math.random()*3+1)+".jpg";
+                var bgimage = document.createElement("img");
+                bgimage.src=bgfile;
+                $("#pict").append(bgimage);
+
+                var loaded=function(){
+                    if(images.length==count){
+                        for(var i=0;i<images.length;i++){
+                            var top=0;
+                            if(image.length!=1){
+                                images[i].width = Math.floor( (images[i].width/3)*Math.random()+(images[i].width/3) );
+                            }
+
+                            if(i==0){
+                                top=0;
+                            }else if(i<2){
+                                top=i*images[i-1].height*0.8;
+                            }else{
+                                top=Math.random()*(maxHeight-images[i].height);                                
+                            }
+                            var left=Math.random()*(maxWidth-images[i].width);
+                            $(images[i]).css("top",(top+200) ).css("left",left);
+                        }
+                    }
+                }
+
+                for (var i in datas) {
+                    maxcount++;
+                    if(datas[i].length>0){
+                        var ra= Math.floor(Math.random()*datas[i].length);
+                        var key='pic'+(count++);
+                        var fileName = datas[i][ra]["name"];
+                        if(!fileName){
+                            fileName = datas[i][ra]["path"].substring(datas[i][ra]["path"].lastIndexOf("/") + 1);
+                        }
+                        var imgpath="cache/"+fileName;
+
+                        var image = document.createElement("img");
+                        image.onload = function(){
+                            $("#pict").append(this);
+                            images.push(this);
+                            loaded();
+                        };
+                        image.src=imgpath;
+                    }
+                }
+                $("#ctr").hide();
+                
+            }
+
+        }
+
+        $(function(){
+            //viewImage();
+        });
+    </script>
+
+</head>
+
+<body>
+    <div id="ctr">
+        <button id="go" onclick="sendServer($('#inputtext').val())">GO</button>
+        <textarea id="inputtext">妊婦さんの体調管理をしっかりと。</textarea>
+    </div>
+    <div id="pos">
+        <div id="pict"></div>
+        <div id="title"></div>
+    </div>
+
+</body>
+
+</html>
